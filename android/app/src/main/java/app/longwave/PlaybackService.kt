@@ -56,7 +56,7 @@ class PlaybackService : MediaSessionService() {
     /**
      * Tells Android this app wants Sonos-room outputs (so the output switcher lists them),
      * and routes the app's media to the room that is actually playing, which gives the
-     * media card a routing session to show ("Living Room" instead of "This phone").
+     * media card a routing session to show (the room's name instead of "This phone").
      */
     private fun registerRouteDiscovery() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return

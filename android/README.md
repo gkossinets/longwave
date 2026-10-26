@@ -49,7 +49,7 @@ Requirements: Android Studio (it provides the SDK and a JDK). The project uses A
 | `ui/AlarmsScreen.kt` | Alarm list and editor |
 | `assets/curated_stations.json` | Generated from the deroverda README (see below) |
 
-## Technical notes (tested against this household's speakers, October 2026)
+## Technical notes (tested on Sonos S2, October 2026)
 
 - A stream plays when its URL is given to Sonos as `x-rincon-mp3radio://<full URL>`. Keeping `https://` works; MP3, AAC, `.pls` playlists and HLS (`.m3u8`) all reached the playing state.
 - Grouping: `SetAVTransportURI` with `x-rincon:<leader UUID>` on each joining room; `BecomeCoordinatorOfStandaloneGroup` to leave.
@@ -61,7 +61,7 @@ Requirements: Android Studio (it provides the SDK and a JDK). The project uses A
 
 - **Editing these alarms in the Sonos app** may replace the stream with something else, because the Sonos app can't browse to a raw URL. Use this app for alarms with a stream.
 - **Same Wi-Fi only.** The phone has to be on the home network.
-- **Firmware dependency.** This relies on the speakers' local UPnP control, which Sonos S2 still supports (tested on 17.2.4). A future firmware update could change that.
+- **Firmware dependency.** This relies on the speakers' local UPnP control, which Sonos S2 still supports (tested on S2 software 17.2). A future firmware update could change that.
 
 ## Regenerating the curated list
 

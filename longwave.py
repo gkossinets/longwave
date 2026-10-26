@@ -22,7 +22,7 @@ from soco.alarms import Alarm, get_alarms  # noqa: E402
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 STATIONS_FILE = os.path.join(HERE, "stations.json")
-DEFAULT_ROOM = os.environ.get("LONGWAVE_ROOM", "Bedroom")
+DEFAULT_ROOM = os.environ.get("LONGWAVE_ROOM", "")
 
 DAY_CODES = {"sun": "0", "mon": "1", "tue": "2", "wed": "3", "thu": "4", "fri": "5", "sat": "6"}
 DAY_NAMES = {v: k.capitalize() for k, v in DAY_CODES.items()}
@@ -79,6 +79,11 @@ def zones():
 
 
 def find_room(name):
+    if not name:
+        zs = zones()
+        if len(zs) == 1:
+            return zs[0].group.coordinator if zs[0].group else zs[0]
+        sys.exit("Which room? Use -r ROOM or set LONGWAVE_ROOM. Rooms: %s" % ", ".join(z.player_name for z in zs))
     for z in zones():
         if z.player_name.lower() == name.lower():
             return z.group.coordinator if z.group else z
