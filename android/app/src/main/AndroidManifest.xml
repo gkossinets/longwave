@@ -41,5 +41,14 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- Sonos rooms as Android media outputs (output switcher on the media card) -->
+        <service
+            android:name=".SonosRouteProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.MediaRoute2ProviderService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

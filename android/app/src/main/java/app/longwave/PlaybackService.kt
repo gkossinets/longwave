@@ -2,6 +2,10 @@ package app.longwave
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.MediaRoute2Info
+import android.media.MediaRouter2
+import android.media.RouteDiscoveryPreference
+import android.os.Build
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.OptIn
@@ -42,11 +46,67 @@ class PlaybackService : MediaSessionService() {
         )
         session = MediaSession.Builder(this, SonosPlayer(scope)).setSessionActivity(open).build()
         NowPlaying.startPolling()
+        registerRouteDiscovery()
+    }
+
+    private var routeCallback: Any? = null
+    private var transferCallback: Any? = null
+    private var transferPending = false
+
+    /**
+     * Tells Android this app wants Sonos-room outputs (so the output switcher lists them),
+     * and routes the app's media to the room that is actually playing, which gives the
+     * media card a routing session to show ("Living Room" instead of "This phone").
+     */
+    private fun registerRouteDiscovery() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        val router = MediaRouter2.getInstance(this)
+        val routes = object : MediaRouter2.RouteCallback() {
+            override fun onRoutesUpdated(routes: List<MediaRoute2Info>) = ensureRoutedToSonos()
+        }
+        val transfers = object : MediaRouter2.TransferCallback() {
+            override fun onTransfer(oldController: MediaRouter2.RoutingController, newController: MediaRouter2.RoutingController) {
+                transferPending = false
+                SonosRouteProvider.controllerId.value =
+                    if (newController == router.systemController) null else newController.id
+            }
+            override fun onTransferFailure(requestedRoute: MediaRoute2Info) {
+                transferPending = false
+                Log.w("SonosRoutes", "transfer to ${requestedRoute.name} failed")
+            }
+            override fun onStop(controller: MediaRouter2.RoutingController) {
+                if (controller.id == SonosRouteProvider.controllerId.value) SonosRouteProvider.controllerId.value = null
+            }
+        }
+        val pref = RouteDiscoveryPreference.Builder(
+            listOf(SonosRouteProvider.FEATURE, MediaRoute2Info.FEATURE_LIVE_AUDIO, MediaRoute2Info.FEATURE_REMOTE_PLAYBACK),
+            true,
+        ).build()
+        router.registerRouteCallback(mainExecutor, routes, pref)
+        router.registerTransferCallback(mainExecutor, transfers)
+        routeCallback = routes
+        transferCallback = transfers
+        scope.launch { NowPlaying.state.collect { ensureRoutedToSonos() } }
+    }
+
+    private fun ensureRoutedToSonos() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        if (SonosRouteProvider.controllerId.value != null || transferPending) return
+        val leader = NowPlaying.state.value.leader ?: return
+        val router = MediaRouter2.getInstance(this)
+        val route = router.routes.firstOrNull { it.id.endsWith(":" + leader.uuid) || it.id == leader.uuid } ?: return
+        transferPending = true
+        router.transferTo(route)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val router = MediaRouter2.getInstance(this)
+            (routeCallback as? MediaRouter2.RouteCallback)?.let { router.unregisterRouteCallback(it) }
+            (transferCallback as? MediaRouter2.TransferCallback)?.let { router.unregisterTransferCallback(it) }
+        }
         NowPlaying.stopPolling()
         session?.run { player.release(); release() }
         session = null
@@ -58,6 +118,7 @@ class PlaybackService : MediaSessionService() {
 @OptIn(UnstableApi::class)
 class SonosPlayer(private val scope: CoroutineScope) : SimpleBasePlayer(Looper.getMainLooper()) {
     private val watcher = scope.launch { NowPlaying.state.collect { invalidateState() } }
+    private val routeWatcher = scope.launch { SonosRouteProvider.controllerId.collect { invalidateState() } }
 
     private val commands = Player.Commands.Builder().addAll(
         Player.COMMAND_PLAY_PAUSE,
@@ -75,7 +136,12 @@ class SonosPlayer(private val scope: CoroutineScope) : SimpleBasePlayer(Looper.g
         val s = NowPlaying.state.value
         val b = State.Builder()
             .setAvailableCommands(commands)
-            .setDeviceInfo(DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).setMaxVolume(100).build())
+            .setDeviceInfo(
+                DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).setMaxVolume(100)
+                    // Links this card to the Sonos routing session, so the output chip shows the rooms.
+                    .setRoutingControllerId(SonosRouteProvider.controllerId.value)
+                    .build()
+            )
             .setDeviceVolume(s.volume)
         if (s.leader == null) {
             return b.setPlaybackState(Player.STATE_IDLE)
@@ -126,6 +192,7 @@ class SonosPlayer(private val scope: CoroutineScope) : SimpleBasePlayer(Looper.g
 
     override fun handleRelease(): ListenableFuture<*> {
         watcher.cancel()
+        routeWatcher.cancel()
         return Futures.immediateVoidFuture()
     }
 }
