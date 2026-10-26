@@ -1,8 +1,10 @@
-# Sonos Radio (Android)
+# Longwave (Android)
+
+*Unofficial; not affiliated with or endorsed by Sonos, Inc. See the note in the [main README](../README.md).*
 
 A personal Android app for playing internet radio on Sonos speakers and for setting Sonos alarms that wake you with a radio stream, without TuneIn.
 
-It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), using the same approach as the `sonos-radio` command-line tool in the parent folder. Alarms are saved on the Sonos system itself, so they fire whether or not the phone is home or switched on.
+It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), using the same approach as the `longwave` command-line tool in the parent folder. Alarms are saved on the Sonos system itself, so they fire whether or not the phone is home or switched on.
 
 ## Features
 
@@ -10,7 +12,7 @@ It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), 
 - **Browse**
   - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text.
   - *Worldwide*: search the open [radio-browser.info](https://www.radio-browser.info) directory by name, country code and genre tag (an empty search shows the most-voted stations).
-  - *Add URL*: paste a stream link (for example from fmstream.org) and check that it's really an audio stream before adding it. You can also share a link from the browser to the app (Share → Sonos Radio).
+  - *Add URL*: paste a stream link (for example from fmstream.org) and check that it's really an audio stream before adding it. You can also share a link from the browser to the app (Share → Longwave).
 - **Play on…**: pick one or more rooms; the first one leads the group and the others join it. Rooms grouped with the leader but not selected are split off. Optionally set the volume.
 - **Alarms**: list, create, edit, enable/disable and delete Sonos alarms. One alarm can cover several rooms (it is stored as one Sonos alarm per room and shown as a single card). The sound can be any station in My stations or the Sonos chime. Alarms made in the Sonos app (e.g. old TuneIn ones) are shown too; editing them here keeps their source unless you pick another.
 - **Speakers**: what each room is playing, volume, stop, ungroup.

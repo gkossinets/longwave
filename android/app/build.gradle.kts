@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "app.sonosradio"
+    namespace = "app.longwave"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "app.sonosradio"
+        applicationId = "app.longwave"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

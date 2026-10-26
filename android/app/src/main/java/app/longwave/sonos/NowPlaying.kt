@@ -1,4 +1,4 @@
-package app.sonosradio.sonos
+package app.longwave.sonos
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope

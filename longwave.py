@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""sonos-radio: play web radio streams on Sonos and set native Sonos alarms,
+"""longwave: play web radio streams on Sonos and set native Sonos alarms,
 without TuneIn.
 
 Speakers are controlled over the local network (UPnP/SOAP via SoCo). Alarms are
@@ -22,7 +22,7 @@ from soco.alarms import Alarm, get_alarms  # noqa: E402
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 STATIONS_FILE = os.path.join(HERE, "stations.json")
-DEFAULT_ROOM = os.environ.get("SONOS_RADIO_ROOM", "Bedroom")
+DEFAULT_ROOM = os.environ.get("LONGWAVE_ROOM", "Bedroom")
 
 DAY_CODES = {"sun": "0", "mon": "1", "tue": "2", "wed": "3", "thu": "4", "fri": "5", "sat": "6"}
 DAY_NAMES = {v: k.capitalize() for k, v in DAY_CODES.items()}
@@ -178,7 +178,7 @@ def _get_alarm(alarm_id):
     for a in get_alarms(zones()[0]):
         if a.alarm_id == str(alarm_id):
             return a
-    sys.exit("No alarm with id %s (see: sonos-radio alarm list)" % alarm_id)
+    sys.exit("No alarm with id %s (see: longwave alarm list)" % alarm_id)
 
 
 def cmd_alarm_remove(args):
@@ -206,7 +206,7 @@ def cmd_alarm_station(args):
 
 
 def main():
-    p = argparse.ArgumentParser(prog="sonos-radio", description=__doc__.split("\n")[0])
+    p = argparse.ArgumentParser(prog="longwave", description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("rooms", help="list rooms and what they're doing").set_defaults(fn=cmd_rooms)

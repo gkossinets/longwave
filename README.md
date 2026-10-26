@@ -1,4 +1,8 @@
-# sonos-radio
+# Longwave
+
+Internet radio and radio alarms for Sonos speakers, without TuneIn.
+
+> Longwave is an unofficial, independent project. It is not affiliated with, endorsed by, or sponsored by Sonos, Inc. "Sonos" is a trademark of Sonos, Inc., used here only to say which speakers this works with. It controls the speakers through their local network interface (UPnP), which Sonos does not officially document for third parties and may change.
 
 > This repo has two parts: the command-line tool described below, and an Android app in [`android/`](android/README.md) with the same features plus station browsing, a control bar, a speaker switcher and a media notification. `soap.sh` is a small curl helper for sending raw Sonos SOAP commands while debugging.
 
@@ -9,25 +13,25 @@ The speakers are told to play a raw stream URL directly over the local network. 
 ## Usage
 
 ```
-./sonos-radio rooms                      # rooms, volume, what's playing
-./sonos-radio stations                   # configured stations
-./sonos-radio play helsinki -r Bedroom   # play now (optional -v 15 to set volume)
-./sonos-radio stop -r Bedroom
+./longwave rooms                      # rooms, volume, what's playing
+./longwave stations                   # configured stations
+./longwave play helsinki -r Bedroom   # play now (optional -v 15 to set volume)
+./longwave stop -r Bedroom
 
-./sonos-radio alarm list
-./sonos-radio alarm add 07:00 helsinki -r Bedroom --days weekdays -v 15 --duration 60
-./sonos-radio alarm add 08:30 helsinki -r Bedroom --days sat,sun
-./sonos-radio alarm disable <id>
-./sonos-radio alarm enable <id>
-./sonos-radio alarm remove <id>
-./sonos-radio alarm set-station <id> helsinki   # repoint an existing alarm (e.g. an old TuneIn one)
+./longwave alarm list
+./longwave alarm add 07:00 helsinki -r Bedroom --days weekdays -v 15 --duration 60
+./longwave alarm add 08:30 helsinki -r Bedroom --days sat,sun
+./longwave alarm disable <id>
+./longwave alarm enable <id>
+./longwave alarm remove <id>
+./longwave alarm set-station <id> helsinki   # repoint an existing alarm (e.g. an old TuneIn one)
 ```
 
-- Room names are case-insensitive. The default room is Bedroom (override with the `SONOS_RADIO_ROOM` environment variable).
+- Room names are case-insensitive. The default room is Bedroom (override with the `LONGWAVE_ROOM` environment variable).
 - `--days` accepts `daily`, `weekdays`, `weekends`, `once`, or a list like `mon,wed,fri`.
 - Station names match partially, so `play hel` works.
 
-To run it from anywhere, link it onto your PATH, e.g. `ln -s ~/github/sonos-radio/sonos-radio ~/bin/sonos-radio` (if `~/bin` is on your PATH).
+To run it from anywhere, link it onto your PATH, e.g. `ln -s ~/github/longwave/longwave ~/bin/longwave` (if `~/bin` is on your PATH).
 
 ## Adding stations
 

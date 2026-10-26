@@ -1,4 +1,4 @@
-package app.sonosradio
+package app.longwave
 
 import android.Manifest
 import android.content.ComponentName
@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import app.sonosradio.ui.MiniPlayer
+import app.longwave.ui.MiniPlayer
 import com.google.common.util.concurrent.ListenableFuture
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -48,15 +48,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.sonosradio.data.Station
-import app.sonosradio.ui.AlarmsScreen
-import app.sonosradio.ui.BrowseScreen
-import app.sonosradio.ui.PlaySheet
-import app.sonosradio.ui.SpeakersScreen
-import app.sonosradio.ui.StationsScreen
+import app.longwave.data.Station
+import app.longwave.ui.AlarmsScreen
+import app.longwave.ui.BrowseScreen
+import app.longwave.ui.PlaySheet
+import app.longwave.ui.SpeakersScreen
+import app.longwave.ui.StationsScreen
 
 class MainActivity : ComponentActivity() {
-    /** A link shared into the app from a browser ("Share → Sonos Radio"). */
+    /** A link shared into the app from a browser ("Share → Longwave"). */
     private val sharedUrl = mutableStateOf<String?>(null)
     private var controller: ListenableFuture<MediaController>? = null
     private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         sharedUrl.value = extractUrl(intent)
-        setContent { SonosRadioTheme { App(sharedUrl) } }
+        setContent { LongwaveTheme { App(sharedUrl) } }
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SonosRadioTheme(content: @Composable () -> Unit) {
+fun LongwaveTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val ctx = LocalContext.current
     val scheme = when {

@@ -1,4 +1,4 @@
-package app.sonosradio.data
+package app.longwave.data
 
 import android.content.Context
 import kotlinx.serialization.Serializable
@@ -135,7 +135,7 @@ object RadioBrowser {
 // ---------------- Small HTTP helpers and stream checking ----------------
 
 object Http {
-    const val UA = "SonosRadio/0.1 (Android; personal use)"
+    const val UA = "Longwave/0.1 (Android; personal use)"
 
     fun getText(url: String, timeoutMs: Int = 10_000): String {
         val c = URL(url).openConnection() as HttpURLConnection

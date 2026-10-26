@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package app.sonosradio.ui
+package app.longwave.ui
 
 import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
@@ -57,11 +57,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import app.sonosradio.AlarmDraft
-import app.sonosradio.AlarmGroup
-import app.sonosradio.AppViewModel
-import app.sonosradio.sonos.Recurrence
-import app.sonosradio.sonos.SonosControl
+import app.longwave.AlarmDraft
+import app.longwave.AlarmGroup
+import app.longwave.AppViewModel
+import app.longwave.sonos.Recurrence
+import app.longwave.sonos.SonosControl
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle

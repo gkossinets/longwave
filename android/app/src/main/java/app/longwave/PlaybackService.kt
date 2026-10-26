@@ -1,4 +1,4 @@
-package app.sonosradio
+package app.longwave
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -13,7 +13,7 @@ import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import app.sonosradio.sonos.NowPlaying
+import app.longwave.sonos.NowPlaying
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture

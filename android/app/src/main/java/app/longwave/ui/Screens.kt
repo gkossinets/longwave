@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
-package app.sonosradio.ui
+package app.longwave.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -74,9 +74,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.sonosradio.AppViewModel
-import app.sonosradio.data.Station
-import app.sonosradio.data.StreamCheck
+import app.longwave.AppViewModel
+import app.longwave.data.Station
+import app.longwave.data.StreamCheck
 import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------- shared bits
@@ -394,7 +394,7 @@ private fun AddUrlTab(vm: AppViewModel, sharedUrl: MutableState<String?>) {
                     "Use the audio stream itself, not the station's web page. On fmstream.org, a station's " +
                         "stream links end in things like .mp3, .aac, /stream, /listen, .pls or .m3u. On a station " +
                         "website, look for 'Listen' or 'Other players'.\n\n" +
-                        "Shortcut: in your browser, long-press a stream link, choose Share, and pick Sonos Radio. " +
+                        "Shortcut: in your browser, long-press a stream link, choose Share, and pick Longwave. " +
                         "The link lands here.",
                     style = MaterialTheme.typography.bodySmall,
                 )

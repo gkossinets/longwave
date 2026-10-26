@@ -1,4 +1,4 @@
-package app.sonosradio
+package app.longwave
 
 import android.app.Application
 import androidx.compose.runtime.getValue
@@ -6,16 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.sonosradio.data.RadioBrowser
-import app.sonosradio.data.Station
-import app.sonosradio.data.StationRepository
-import app.sonosradio.data.StreamCheck
-import app.sonosradio.sonos.NowPlaying
-import app.sonosradio.sonos.RoomStatus
-import app.sonosradio.sonos.SonosAlarm
-import app.sonosradio.sonos.SonosControl
-import app.sonosradio.sonos.SonosDiscovery
-import app.sonosradio.sonos.Speaker
+import app.longwave.data.RadioBrowser
+import app.longwave.data.Station
+import app.longwave.data.StationRepository
+import app.longwave.data.StreamCheck
+import app.longwave.sonos.NowPlaying
+import app.longwave.sonos.RoomStatus
+import app.longwave.sonos.SonosAlarm
+import app.longwave.sonos.SonosControl
+import app.longwave.sonos.SonosDiscovery
+import app.longwave.sonos.Speaker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

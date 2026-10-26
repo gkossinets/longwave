@@ -1,4 +1,4 @@
-package app.sonosradio.sonos
+package app.longwave.sonos
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -25,7 +25,7 @@ import java.net.URL
 
 /**
  * Local-network control of Sonos speakers over UPnP/SOAP (port 1400).
- * Same mechanism as the sonos-radio CLI: no Sonos cloud, no TuneIn.
+ * Same mechanism as the longwave CLI: no Sonos cloud, no TuneIn.
  */
 
 data class Speaker(
@@ -164,7 +164,7 @@ class SonosDiscovery(private val context: Context) {
 
     private fun ssdp(timeoutMs: Long = 2500): String? {
         val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val lock = wifi.createMulticastLock("sonosradio").apply { setReferenceCounted(false); acquire() }
+        val lock = wifi.createMulticastLock("longwave").apply { setReferenceCounted(false); acquire() }
         try {
             DatagramSocket().use { sock ->
                 sock.soTimeout = 400
