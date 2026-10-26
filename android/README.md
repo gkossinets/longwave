@@ -41,6 +41,7 @@ Requirements: Android Studio (it provides the SDK and a JDK). The project uses A
 | `AppViewModel.kt` | App state and actions; groups per-room Sonos alarms into one card |
 | `sonos/NowPlaying.kt` | Shared state of the active group (used by the control bar and the notification); play/stop, group volume, polling |
 | `data/Artwork.kt` | Notification/control-bar artwork: station logo when one of at least 96 px can be found (Radio Browser favicon, homepage icons, og:image), else a generated tile with the station name; cached 30 days |
+| `SonosRouteProvider.kt` | Registers each Sonos room as an Android media output and the active group as a routing session, so the media card's output chip shows the room and its sheet can move, group, stop and set volume. `PlaybackService` transfers the app's media to the playing room so Android creates the session; the media session links to it through `DeviceInfo.routingControllerId` |
 | `PlaybackService.kt` | Media session service and the `SonosPlayer` adapter behind the notification |
 | `ui/MiniPlayer.kt` | Control bar and its room/volume sheet |
 | `MainActivity.kt` | Theme, bottom navigation, share-intent handling |
