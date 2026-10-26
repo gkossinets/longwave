@@ -12,6 +12,8 @@ The speakers are told to play a raw stream URL directly over the local network. 
 
 ## Usage
 
+The examples below use `helsinki`, the example station that `stations.json` ships with (e.g., Radio Helsinki). Any internet radio station works; see [Adding stations](#adding-stations).
+
 ```
 ./longwave rooms                      # rooms, volume, what's playing
 ./longwave stations                   # configured stations
@@ -35,7 +37,7 @@ To run it from anywhere, link it onto your PATH, e.g. `ln -s ~/github/longwave/l
 
 ## Adding stations
 
-Edit `stations.json`:
+`stations.json` starts with one example station (e.g., Radio Helsinki); add your own or replace it. Edit `stations.json`:
 
 ```json
 {
@@ -48,13 +50,13 @@ The URL must be the audio stream itself, not the station's web page. Good source
 
 ## How it works
 
-- Playback: the stream URL is sent to the room's group coordinator with the `x-rincon-mp3radio://` prefix, which tells Sonos to treat it as an internet radio stream. The `https://` is dropped (Sonos then fetches over http), which is the tested path for Radio Helsinki. A station that only serves https would need the code in `stream_uri()` changed to keep the scheme.
+- Playback: the stream URL is sent to the room's group coordinator with the `x-rincon-mp3radio://` prefix, which tells Sonos to treat it as an internet radio stream. The `https://` is dropped (Sonos then fetches over http), which is the path tested with the example station (e.g., Radio Helsinki). A station that only serves https would need the code in `stream_uri()` changed to keep the scheme.
 - Alarms: written through the speaker's AlarmClock service (via SoCo), with the stream as the alarm source. If a stream ever fails at alarm time, Sonos falls back to its built-in chime, so you still wake up.
 
 ## Caveats
 
 - **Editing an alarm in the Sonos app** may replace the source, since the app can't browse to a raw stream. Manage these alarms with this tool; enabling/disabling in the app should be fine but is untested.
-- **The Sonos app may show the alarm source oddly** (title should read "Radio Helsinki").
+- **The Sonos app may show the alarm source oddly** (the title should read the station's name, e.g., "Radio Helsinki").
 - **Local Network permission (macOS).** The virtualenv is built on Apple's system Python (`/usr/bin/python3`) because Homebrew's Python was blocked from the local network. The first time you run it from Terminal, macOS may ask to allow Terminal on the local network; say yes.
 - **Sonos firmware.** This relies on the speakers' local UPnP control, which Sonos still supports on S2 (tested on S2 software 17.2, October 2026). A future firmware update could change that.
 

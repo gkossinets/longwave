@@ -8,7 +8,7 @@ It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), 
 
 ## Features
 
-- **My stations**: your saved list (pre-seeded with Radio Helsinki). Edit, reorder, remove, or open a station's website.
+- **My stations**: your saved list. It starts with one example station (e.g., Radio Helsinki), which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
 - **Browse**
   - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text.
   - *Worldwide*: search the open [radio-browser.info](https://www.radio-browser.info) directory by name, country code and genre tag (an empty search shows the most-voted stations).
