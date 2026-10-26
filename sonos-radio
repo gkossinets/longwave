@@ -1,0 +1,4 @@
+#!/bin/bash
+# Wrapper: runs sonos_radio.py with this folder's virtualenv (built on macOS system Python).
+DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+exec "$DIR/.venv/bin/python" "$DIR/sonos_radio.py" "$@"
