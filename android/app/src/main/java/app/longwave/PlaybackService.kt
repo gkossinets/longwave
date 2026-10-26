@@ -84,7 +84,9 @@ class SonosPlayer(private val scope: CoroutineScope) : SimpleBasePlayer(Looper.g
         }
         val meta = MediaMetadata.Builder()
             .setTitle(s.title.ifBlank { if (s.isPlaying) "Sonos" else "Stopped" })
-            .setArtist(s.roomsLabel)
+            .setArtist(listOf(s.track, s.roomsLabel).filter { it.isNotBlank() }.joinToString(" · "))
+            .setStation(s.title)
+            .apply { s.artwork?.let { setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } }
             .build()
         val item = MediaItemData.Builder("sonos-live")
             .setMediaItem(MediaItem.Builder().setMediaId("sonos-live").build())

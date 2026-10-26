@@ -1,6 +1,9 @@
 package app.longwave.sonos
 
 import android.content.Context
+import app.longwave.data.Artwork
+import app.longwave.data.Station
+import app.longwave.data.StationLookup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,6 +31,10 @@ object NowPlaying {
         val transport: String = "",
         val title: String = "",
         val volume: Int = 0,
+        /** "Artist - Song" when the station sends it (ICY metadata, via Sonos). */
+        val track: String = "",
+        /** PNG for the media notification and control bar; same instance while unchanged. */
+        val artwork: ByteArray? = null,
     ) {
         val isPlaying: Boolean get() = transport == "PLAYING" || transport == "TRANSITIONING"
         val roomsLabel: String get() = members.joinToString(" + ") { it.name }
@@ -77,11 +84,26 @@ object NowPlaying {
         var title = SonosControl.titleOf(media["CurrentURIMetaData"].orEmpty())
         // Sonos drops the title when coordination moves to another room; reuse the one we saw.
         if (title.isNotBlank()) titles[uri] = title
-        else title = titles[uri] ?: SonosControl.streamUrlOf(uri) ?: ""
+        else title = titles[uri] ?: ""
+        // Prefer our own station record: Sonos often has no title (alarms, handovers, other apps).
+        val streamUrl = SonosControl.streamUrlOf(uri)
+        val station = streamUrl?.let { runCatching { StationLookup.find(ctx, it) }.getOrNull() }
+        if (station != null && (title.isBlank() || title == streamUrl)) title = station.name
+        if (title.isBlank()) title = streamUrl.orEmpty()
+        val track = if (transport == "PLAYING") runCatching {
+            val meta = Soap.call(leader.ip, Soap.Svc.AV, "GetPositionInfo", i0)["TrackMetaData"].orEmpty()
+            Regex("<r:streamContent>(.*?)</r:streamContent>", RegexOption.DOT_MATCHES_ALL).find(meta)
+                ?.groupValues?.get(1).orEmpty()
+                .replace("&amp;", "&").replace("&apos;", "'").replace("&quot;", "\"").trim()
+        }.getOrDefault("").takeUnless { it.startsWith("ZPSTR_") || it.equals(title, true) }.orEmpty()
+        else ""
+        val artwork = if (title.isNotBlank())
+            Artwork.forStation(ctx, station ?: Station(id = uri, name = title, url = uri))
+        else null
         val volume = runCatching {
             Soap.call(leader.ip, Soap.Svc.GRC, "GetGroupVolume", i0)["CurrentVolume"]?.toIntOrNull()
         }.getOrNull() ?: 0
-        _state.value = State(leader, members, transport, title, volume)
+        _state.value = State(leader, members, transport, title, volume, track, artwork)
     }
 
     private fun transportOf(s: Speaker): String =

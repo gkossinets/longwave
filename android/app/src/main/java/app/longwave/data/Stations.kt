@@ -22,6 +22,7 @@ data class Station(
     val bitrate: Int = 0,
     val favorite: Boolean = false,
     val source: String = "",
+    val favicon: String = "",
 ) {
     val isHls: Boolean get() = url.substringBefore('?').endsWith(".m3u8", ignoreCase = true)
 
@@ -73,6 +74,7 @@ private data class RbStation(
     val url: String = "",
     val url_resolved: String = "",
     val homepage: String = "",
+    val favicon: String = "",
     val tags: String = "",
     val country: String = "",
     val codec: String = "",
@@ -113,6 +115,7 @@ object RadioBrowser {
                 codec = it.codec,
                 bitrate = it.bitrate,
                 source = "radio-browser",
+                favicon = it.favicon,
             )
         }
     }
@@ -129,6 +132,26 @@ object RadioBrowser {
             }
         }
         throw last ?: IllegalStateException("Radio Browser unavailable")
+    }
+}
+
+/** Finds the station (My stations first, then the curated list) for a stream URL Sonos is playing. */
+object StationLookup {
+    private var mine: List<Station> = emptyList()
+    private var mineStamp = -1L
+    private var curated: List<Station>? = null
+
+    private fun norm(u: String) = u.trim().substringAfter("://").trimEnd('/').lowercase()
+
+    @Synchronized
+    fun find(ctx: Context, url: String): Station? {
+        val repo = StationRepository(ctx)
+        val f = File(ctx.filesDir, "my_stations.json")
+        val stamp = if (f.exists()) f.lastModified() else 0L
+        if (stamp != mineStamp) { mine = repo.loadMine(); mineStamp = stamp }
+        if (curated == null) curated = runCatching { repo.loadCurated() }.getOrDefault(emptyList())
+        val n = norm(url)
+        return mine.firstOrNull { norm(it.url) == n } ?: curated.orEmpty().firstOrNull { norm(it.url) == n }
     }
 }
 

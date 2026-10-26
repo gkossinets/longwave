@@ -2,7 +2,12 @@
 
 package app.longwave.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,7 +64,12 @@ fun MiniPlayer(vm: AppViewModel) {
             Modifier.fillMaxWidth().clickable { showSheet = true }.padding(start = 16.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Filled.Speaker, contentDescription = null)
+            val art = remember(s.artwork) {
+                s.artwork?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
+            }
+            if (art != null) Image(art, contentDescription = null,
+                modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
+            else Icon(Icons.Filled.Speaker, contentDescription = null)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 val title = when {
@@ -71,7 +81,8 @@ fun MiniPlayer(vm: AppViewModel) {
                 }
                 Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    if (s.leader == null) "Tap to choose a room" else "${s.roomsLabel} · volume ${s.volume}",
+                    if (s.leader == null) "Tap to choose a room"
+                    else listOf(s.track, s.roomsLabel, "volume ${s.volume}").filter { it.isNotBlank() }.joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
