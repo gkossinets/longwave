@@ -40,6 +40,7 @@ Requirements: Android Studio (it provides the SDK and a JDK). The project uses A
 | `data/Stations.kt` | Station model, My-stations storage (JSON in app files), curated asset loader, Radio Browser client, stream checker |
 | `AppViewModel.kt` | App state and actions; groups per-room Sonos alarms into one card |
 | `sonos/NowPlaying.kt` | Shared state of the active group (used by the control bar and the notification); play/stop, group volume, polling |
+| `data/Artwork.kt` | Notification/control-bar artwork: station logo when one of at least 96 px can be found (Radio Browser favicon, homepage icons, og:image), else a generated tile with the station name; cached 30 days |
 | `PlaybackService.kt` | Media session service and the `SonosPlayer` adapter behind the notification |
 | `ui/MiniPlayer.kt` | Control bar and its room/volume sheet |
 | `MainActivity.kt` | Theme, bottom navigation, share-intent handling |
