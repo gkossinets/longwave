@@ -69,3 +69,5 @@ The URL must be the audio stream itself, not the station's web page. Good source
 - Direct playback of a stream in one room.
 - A one-time alarm with the stream as its sound: fired on time and played the stream.
 - `alarm add` / `disable` / `remove` round-trip via the CLI.
+- Adding rooms to a stream that is already playing, so they play together as a group (Android app: speaker switcher and the system output sheet).
+- Switching playback to another room, including away from a stereo pair; the stream carries on in the new room after about a second (Android app).
