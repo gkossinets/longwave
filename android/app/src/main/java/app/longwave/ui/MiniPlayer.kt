@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -158,9 +159,6 @@ private fun ActiveRoomSheet(vm: AppViewModel, onDismiss: () -> Unit) {
                 if (current.description.isNotBlank())
                     Text(current.description, style = MaterialTheme.typography.bodySmall)
                 if (vm.isSaved(current)) Text("In My stations", style = MaterialTheme.typography.bodySmall)
-                else OutlinedButton(onClick = { vm.addStation(current) }) {
-                    Icon(Icons.Filled.Add, null); Spacer(Modifier.width(6.dp)); Text("Add to My stations")
-                }
             }
             Spacer(Modifier.height(12.dp))
             val groups = vm.speakers.filter { it.isCoordinator }.map { c ->
@@ -190,10 +188,15 @@ private fun ActiveRoomSheet(vm: AppViewModel, onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.titleSmall)
                 Slider(value = vol, onValueChange = { vol = it }, valueRange = 0f..100f,
                     onValueChangeFinished = { vm.setGroupVolume(vol.toInt()) })
-                Button(onClick = { vm.togglePlay() }) {
-                    Icon(if (s.isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(if (s.isPlaying) "Stop" else "Play")
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = { vm.togglePlay() }) {
+                        Icon(if (s.isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow, null)
+                        Spacer(Modifier.width(6.dp))
+                        Text(if (s.isPlaying) "Stop" else "Play")
+                    }
+                    if (current != null && !vm.isSaved(current)) OutlinedButton(onClick = { vm.addStation(current) }) {
+                        Icon(Icons.Filled.Add, null); Spacer(Modifier.width(6.dp)); Text("Add to My stations")
+                    }
                 }
             }
         }
