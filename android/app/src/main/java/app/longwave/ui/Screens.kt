@@ -2,8 +2,12 @@
 
 package app.longwave.ui
 
+import android.graphics.BitmapFactory
+import android.util.LruCache
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -15,11 +19,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -62,12 +68,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -75,9 +87,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.longwave.AppViewModel
+import app.longwave.data.Artwork
 import app.longwave.data.Station
 import app.longwave.data.StreamCheck
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // ---------------------------------------------------------------- shared bits
 
@@ -99,11 +114,13 @@ fun StationRow(
     onClick: () -> Unit,
     trailing: @Composable () -> Unit,
     showDescription: Boolean = true,
+    showArtwork: Boolean = false,
 ) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = {
-            Icon(if (st.favorite) Icons.Filled.Star else Icons.Filled.Radio, contentDescription = null)
+            if (showArtwork) StationArt(st)
+            else Icon(if (st.favorite) Icons.Filled.Star else Icons.Filled.Radio, contentDescription = null)
         },
         headlineContent = { Text(st.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         supportingContent = {
@@ -115,6 +132,44 @@ fun StationRow(
         },
         trailingContent = { Row { trailing() } },
     )
+}
+
+private val ART_SIZE = 48.dp
+
+// Decoded row images, so a row scrolling back into view shows its logo at once instead of
+// flashing the placeholder while the PNG is decoded again.
+private val decodedArt = LruCache<String, ImageBitmap>(64)
+
+/**
+ * The station's logo (or its generated name tile), the same image as the control bar and
+ * notification. Shows the radio icon until it loads, or if it can't be made at all.
+ */
+@Composable
+private fun StationArt(st: Station) {
+    val ctx = LocalContext.current.applicationContext
+    val targetPx = with(LocalDensity.current) { ART_SIZE.roundToPx() }
+    val cacheKey = Artwork.key(st) + "@" + targetPx
+    val art by produceState(decodedArt.get(cacheKey), cacheKey) {
+        if (value == null) value = withContext(Dispatchers.IO) {
+            Artwork.forStation(ctx, st)?.let { decodeScaled(it, targetPx) }?.also { decodedArt.put(cacheKey, it) }
+        }
+    }
+    Box(Modifier.size(ART_SIZE), contentAlignment = Alignment.Center) {
+        val img = art
+        if (img != null) Image(img, contentDescription = null,
+            modifier = Modifier.size(ART_SIZE).clip(RoundedCornerShape(8.dp)))
+        else Icon(if (st.favorite) Icons.Filled.Star else Icons.Filled.Radio, contentDescription = null)
+    }
+}
+
+/** Artwork is 512 px; decode at the smallest power-of-two step that still covers the row. */
+private fun decodeScaled(bytes: ByteArray, targetPx: Int): ImageBitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    var sample = 1
+    while (minOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= targetPx) sample *= 2
+    val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)?.asImageBitmap()
 }
 
 // ---------------------------------------------------------------- My stations
@@ -134,7 +189,7 @@ fun StationsScreen(vm: AppViewModel, onPlay: (Station) -> Unit, onBrowse: () -> 
         LazyColumn(Modifier.fillMaxSize()) {
             items(vm.myStations, key = { it.id }) { st ->
                 var menu by remember { mutableStateOf(false) }
-                StationRow(st, onClick = { onPlay(st) }, trailing = {
+                StationRow(st, onClick = { onPlay(st) }, showArtwork = true, trailing = {
                     IconButton(onClick = { onPlay(st) }) { Icon(Icons.Filled.PlayArrow, "Play on Sonos") }
                     IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "More") }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {

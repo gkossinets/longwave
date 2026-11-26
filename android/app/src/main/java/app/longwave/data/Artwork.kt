@@ -20,34 +20,121 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Square artwork for the media notification / lock screen and the control bar.
+ * Square artwork for My stations, the media notification / lock screen and the control bar.
  * Uses the station's logo when a reasonably large one can be found (Radio Browser
  * favicon, then the homepage's touch icon / icons / og:image); otherwise draws a
- * coloured tile with the station name. Results are cached on disk for 30 days.
+ * coloured tile with the station name. Results are cached on disk (see [artworkIsFresh]).
  */
+private const val DAY_MS = 24L * 3600 * 1000
+
+/**
+ * A found logo is kept for 30 days. A generated name tile may only mean the lookup failed
+ * (offline, site down), so it is retried after a day instead of sticking for a month.
+ */
+internal fun artworkIsFresh(ageMs: Long, hasLogo: Boolean): Boolean =
+    ageMs >= 0 && ageMs < if (hasLogo) 30 * DAY_MS else DAY_MS
+
+private fun alphaOf(c: Int) = (c ushr 24) and 0xFF
+
+/** True if [c] is close enough to [bg] to count as background (allows JPEG noise). */
+private fun nearColor(c: Int, bg: Int): Boolean {
+    val dr = abs(((c shr 16) and 0xFF) - ((bg shr 16) and 0xFF))
+    val dg = abs(((c shr 8) and 0xFF) - ((bg shr 8) and 0xFF))
+    val db = abs((c and 0xFF) - (bg and 0xFF))
+    return max(dr, max(dg, db)) <= 40
+}
+
+/**
+ * Bounding box [left, top, right, bottom] (inclusive) of the pixels that are not background,
+ * or null if there are none. [bg] is the plain background colour, or null for a transparent one.
+ * Lets padded logos (e.g. a small mark centred on a wide social-media card) fill their tile.
+ */
+internal fun contentBounds(px: IntArray, w: Int, h: Int, bg: Int?): IntArray? {
+    var l = w; var t = h; var r = -1; var b = -1
+    for (y in 0 until h) for (x in 0 until w) {
+        val c = px[y * w + x]
+        val isBackground = alphaOf(c) <= 24 || (bg != null && nearColor(c, bg))
+        if (!isBackground) {
+            if (x < l) l = x
+            if (x > r) r = x
+            if (y < t) t = y
+            if (y > b) b = y
+        }
+    }
+    return if (r < 0) null else intArrayOf(l, t, r, b)
+}
+
 object Artwork {
     private const val SIZE = 512
-    private val mem = ConcurrentHashMap<String, ByteArray>()
+
+    private class Entry(val bytes: ByteArray, val savedAt: Long, val hasLogo: Boolean)
+    private val mem = ConcurrentHashMap<String, Entry>()
+
+    // One build per station at a time: several list rows and the now-playing poll can ask for
+    // the same artwork at once, and a lookup can take many seconds.
+    private val locks = ConcurrentHashMap<String, Any>()
+
+    fun key(st: Station): String =
+        Integer.toHexString((st.name + "|" + st.url + "|" + st.favicon + "|" + st.homepage).hashCode())
 
     /** Blocking (may hit the network the first time); call off the main thread. */
     fun forStation(ctx: Context, st: Station): ByteArray? = try {
-        val key = Integer.toHexString((st.name + "|" + st.url + "|" + st.favicon + "|" + st.homepage).hashCode())
-        mem[key] ?: run {
-            val dir = File(ctx.cacheDir, "artwork").apply { mkdirs() }
-            val f = File(dir, "$key.png")
-            val fresh = f.exists() && System.currentTimeMillis() - f.lastModified() < 30L * 24 * 3600 * 1000
-            val bytes = if (fresh) f.readBytes() else build(st).also { f.writeBytes(it) }
-            mem[key] = bytes
-            bytes
+        val key = key(st)
+        fun cached(now: Long) = mem[key]?.takeIf { artworkIsFresh(now - it.savedAt, it.hasLogo) }?.bytes
+        cached(System.currentTimeMillis()) ?: synchronized(locks.getOrPut(key) { Any() }) {
+            val now = System.currentTimeMillis()
+            cached(now) ?: loadOrBuild(cacheDir(ctx), key, st, now).also { mem[key] = it }.bytes
         }
     } catch (e: Exception) {
         null
     }
 
-    private fun build(st: Station): ByteArray {
+    // Bump the folder name whenever cached images should be redrawn (v1 mixed logos and
+    // name tiles under one file name; v2 did not trim logo borders), and drop old folders.
+    private fun cacheDir(ctx: Context): File {
+        for (old in listOf("artwork", "artwork2")) File(ctx.cacheDir, old).takeIf { it.exists() }?.deleteRecursively()
+        return File(ctx.cacheDir, "artwork3").apply { mkdirs() }
+    }
+
+    private fun loadOrBuild(dir: File, key: String, st: Station, now: Long): Entry {
+        val logoFile = File(dir, "$key.png")
+        val nameFile = File(dir, "$key.name.png")
+        for ((f, hasLogo) in listOf(logoFile to true, nameFile to false)) {
+            if (f.exists() && artworkIsFresh(now - f.lastModified(), hasLogo) && decodes(f))
+                return Entry(f.readBytes(), f.lastModified(), hasLogo)
+        }
+        val (bytes, hasLogo) = build(st)
+        return when {
+            hasLogo -> { writeAtomically(logoFile, bytes); nameFile.delete(); Entry(bytes, now, true) }
+            // Lookup failed but an older logo exists: keep showing it, and date the file so
+            // it counts as fresh for one more day, so the retry waits a day across restarts too.
+            logoFile.exists() && decodes(logoFile) -> {
+                logoFile.setLastModified(now - 29 * DAY_MS)
+                Entry(logoFile.readBytes(), now, false)
+            }
+            else -> { writeAtomically(nameFile, bytes); Entry(bytes, now, false) }
+        }
+    }
+
+    /** Write to a temp file and rename, so a crash mid-write never leaves a truncated PNG. */
+    private fun writeAtomically(f: File, bytes: ByteArray) {
+        val tmp = File(f.parentFile, f.name + ".tmp")
+        tmp.writeBytes(bytes)
+        if (!tmp.renameTo(f)) { f.writeBytes(bytes); tmp.delete() }
+    }
+
+    private fun decodes(f: File): Boolean {
+        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(f.path, o)
+        return o.outWidth > 0
+    }
+
+    /** PNG bytes, and whether they show a real logo (false: generated name tile). */
+    private fun build(st: Station): Pair<ByteArray, Boolean> {
         val logo = runCatching { findLogo(st) }.getOrNull()
         val bmp = if (logo != null) composeLogo(logo, st.name) else composeName(st.name)
-        return ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
+        val bytes = ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
+        return bytes to (logo != null)
     }
 
     // ---------------- finding a logo
@@ -123,8 +210,31 @@ object Artwork {
         return Color.HSVToColor(floatArrayOf(hue, 0.55f, 0.45f))
     }
 
+    /**
+     * Crops a plain (one colour or transparent) border off a logo, keeping a small margin.
+     * Leaves the image alone if its edges are not plain (photos) or there is little to crop.
+     */
+    private fun trimBorder(src: Bitmap): Bitmap {
+        val scale = min(1f, 1024f / max(src.width, src.height))
+        val b = if (scale < 1f) Bitmap.createScaledBitmap(src, (src.width * scale).toInt(), (src.height * scale).toInt(), true) else src
+        val edges = edgePixels(b)
+        val bg: Int? = when {
+            edges.all { alphaOf(it) <= 24 } -> null
+            else -> edgeColor(b)?.takeIf { e -> edges.all { alphaOf(it) > 200 && nearColor(it, e) } } ?: return b
+        }
+        val px = IntArray(b.width * b.height).also { b.getPixels(it, 0, b.width, 0, 0, b.width, b.height) }
+        val box = contentBounds(px, b.width, b.height, bg) ?: return b
+        val bw = box[2] - box[0] + 1; val bh = box[3] - box[1] + 1
+        if (bw > b.width * 0.85f && bh > b.height * 0.85f) return b
+        val m = (max(bw, bh) * 0.06f).toInt()
+        val l = max(0, box[0] - m); val t = max(0, box[1] - m)
+        val r = min(b.width - 1, box[2] + m); val bt = min(b.height - 1, box[3] + m)
+        return Bitmap.createBitmap(b, l, t, r - l + 1, bt - t + 1)
+    }
+
     /** Opaque, roughly square logos fill the tile; anything else sits centred on its own edge colour. */
-    private fun composeLogo(logo: Bitmap, name: String): Bitmap {
+    private fun composeLogo(original: Bitmap, name: String): Bitmap {
+        val logo = runCatching { trimBorder(original) }.getOrDefault(original)
         val out = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
         val c = Canvas(out)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)

@@ -35,6 +35,20 @@ data class Station(
         ).joinToString(" · ")
 }
 
+/**
+ * Gives saved copies of the default stations the logo URLs added to [defaults] later, so
+ * existing installs get them too. Only fills a blank favicon, only while the station still
+ * plays the default's stream (an edited one may be a different station now), and never
+ * re-adds removed stations.
+ */
+internal fun backfillFavicons(saved: List<Station>, defaults: List<Station>): List<Station> {
+    val byId = defaults.associateBy { it.id }
+    return saved.map { s ->
+        val d = byId[s.id]
+        if (s.favicon.isBlank() && d != null && d.favicon.isNotBlank() && s.url == d.url) s.copy(favicon = d.favicon) else s
+    }
+}
+
 @Serializable
 private data class CuratedFile(val source: String = "", val stations: List<Station>)
 
@@ -46,7 +60,8 @@ class StationRepository(private val context: Context) {
     private val listSer = ListSerializer(Station.serializer())
 
     fun loadMine(): List<Station> =
-        if (file.exists()) runCatching { AppJson.decodeFromString(listSer, file.readText()) }.getOrElse { defaults() }
+        if (file.exists()) runCatching { backfillFavicons(AppJson.decodeFromString(listSer, file.readText()), defaults()) }
+            .getOrElse { defaults() }
         else defaults()
 
     fun saveMine(list: List<Station>) = file.writeText(AppJson.encodeToString(listSer, list))
@@ -65,7 +80,8 @@ class StationRepository(private val context: Context) {
         // One independent station per region, matching stations.json in the CLI.
         Station(
             id = "mad-radio", name = "Mad Radio", url = "https://c25.radioboss.fm/stream/171",
-            homepage = "https://madradio.co/", description = "Bogotá, from a vinyl bar",
+            homepage = "https://madradio.co/", favicon = "https://madradio.co/wp-content/uploads/2024/06/logo-mad-radio-b.png",
+            description = "Bogotá, from a vinyl bar",
             country = "Colombia", codec = "MP3", bitrate = 192, source = "manual",
         ),
         Station(
@@ -81,7 +97,8 @@ class StationRepository(private val context: Context) {
         ),
         Station(
             id = "wfmu", name = "WFMU", url = "https://stream0.wfmu.org/freeform-128k",
-            homepage = "https://wfmu.org/", description = "Jersey City, 91.1 MHz",
+            homepage = "https://wfmu.org/", favicon = "https://wfmu.org/images/wfmu_logo_94.gif",
+            description = "Jersey City, 91.1 MHz",
             country = "United States", codec = "MP3", bitrate = 128, source = "manual",
         ),
     )
