@@ -10,6 +10,8 @@ It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), 
 
 To try it without Android Studio, install the debug APK from the [latest release](https://github.com/gkossinets/longwave/releases/latest) (allow installs from unknown sources when asked).
 
+The release APK is a debug build. A future release may be signed differently, and then it can only be installed after uninstalling this one, which deletes your saved stations. There is no promise that app data carries over between releases. Alarms are not affected: they are stored on the Sonos speakers.
+
 ## Features
 
 - **My stations**: your saved list. It starts with five independent stations (Radio Helsinki, Mad Radio in Bogotá, Oroko Radio in Accra, Hà Nội Community Radio and WFMU), which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
