@@ -6,6 +6,10 @@ A personal Android app for playing internet radio on Sonos speakers and for sett
 
 It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), using the same approach as the `longwave` command-line tool in the parent folder. Alarms are saved on the Sonos system itself, so they fire whether or not the phone is home or switched on.
 
+<img src="../docs/app.png" alt="My stations screen with the control bar" width="300">
+
+To try it without Android Studio, install the debug APK from the [latest release](https://github.com/gkossinets/longwave/releases/latest) (allow installs from unknown sources when asked).
+
 ## Features
 
 - **My stations**: your saved list. It starts with one example station, Radio Helsinki, which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
