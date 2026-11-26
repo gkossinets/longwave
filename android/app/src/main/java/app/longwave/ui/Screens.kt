@@ -154,7 +154,14 @@ private fun StationArt(st: Station) {
             Artwork.forStation(ctx, st)?.let { decodeScaled(it, targetPx) }?.also { decodedArt.put(cacheKey, it) }
         }
     }
-    Box(Modifier.size(ART_SIZE), contentAlignment = Alignment.Center) {
+    // ListItem aligns the top of this slot with the top of the title's line box, but the
+    // letters start lower: half the line's leading plus the space above capitals (about a
+    // tenth of the font size). Shift the art down by that so its top meets the title's.
+    val title = MaterialTheme.typography.bodyLarge  // ListItem's headline style
+    val topInset = with(LocalDensity.current) {
+        ((title.lineHeight.toPx() - title.fontSize.toPx()) / 2 + title.fontSize.toPx() * 0.1f).toDp()
+    }
+    Box(Modifier.padding(top = topInset).size(ART_SIZE), contentAlignment = Alignment.Center) {
         val img = art
         if (img != null) Image(img, contentDescription = null,
             modifier = Modifier.size(ART_SIZE).clip(RoundedCornerShape(8.dp)))
