@@ -6,7 +6,7 @@ Longwave tells your Sonos speakers to play a radio station's raw stream URL dire
 
 It has two parts: a command-line tool (this folder) and an Android app in [`android/`](android/README.md) with the same features plus station browsing, a control bar, a speaker switcher and a media notification. `soap.sh` is a small curl helper for sending raw Sonos SOAP commands while debugging.
 
-<img src="docs/app.png" alt="Longwave Android app: My stations, with Radio Helsinki playing in the Living Room" width="300">
+<img src="docs/app.png" alt="Longwave Android app: My stations with station logos, and the control bar showing what is playing" width="300">
 
 ## Setup
 
