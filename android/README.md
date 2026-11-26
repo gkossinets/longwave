@@ -1,6 +1,6 @@
 # Longwave (Android)
 
-*Unofficial; not affiliated with or endorsed by Sonos, Inc. See the note in the [main README](../README.md).*
+*Unofficial; not affiliated with or endorsed by Sonos, Inc. See the [disclaimer](../README.md#disclaimer) in the main README.*
 
 A personal Android app for playing internet radio on Sonos speakers and for setting Sonos alarms that wake you with a radio stream, without TuneIn.
 
@@ -8,7 +8,7 @@ It talks to the speakers directly over the home Wi-Fi (UPnP/SOAP on port 1400), 
 
 ## Features
 
-- **My stations**: your saved list. It starts with one example station (e.g., Radio Helsinki), which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
+- **My stations**: your saved list. It starts with one example station, Radio Helsinki, which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
 - **Browse**
   - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text.
   - *Worldwide*: search the open [radio-browser.info](https://www.radio-browser.info) directory by name, country code and genre tag (an empty search shows the most-voted stations).
