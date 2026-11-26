@@ -61,7 +61,29 @@ class StationRepository(private val context: Context) {
             id = "radio-helsinki", name = "Radio Helsinki", url = "https://stream.radiohelsinki.fi/",
             homepage = "https://www.radiohelsinki.fi/", description = "Helsinki, 98.5 MHz",
             country = "Finland", codec = "MP3", bitrate = 256, source = "manual",
-        )
+        ),
+        // One independent station per region, matching stations.json in the CLI.
+        Station(
+            id = "mad-radio", name = "Mad Radio", url = "https://c25.radioboss.fm/stream/171",
+            homepage = "https://madradio.co/", description = "Bogotá, from a vinyl bar",
+            country = "Colombia", codec = "MP3", bitrate = 192, source = "manual",
+        ),
+        Station(
+            id = "oroko-radio", name = "Oroko Radio", url = "https://oroko-radio.radiocult.fm/stream",
+            homepage = "https://oroko.live/", description = "Accra, community radio",
+            country = "Ghana", codec = "MP3", source = "manual",
+        ),
+        Station(
+            id = "hanoi-community-radio", name = "Hà Nội Community Radio",
+            url = "https://ha-noi-community-radio.radiocult.fm/stream",
+            homepage = "https://www.hanoicommunityradio.com/", description = "Hanoi, community radio",
+            country = "Vietnam", codec = "MP3", bitrate = 160, source = "manual",
+        ),
+        Station(
+            id = "wfmu", name = "WFMU", url = "https://stream0.wfmu.org/freeform-128k",
+            homepage = "https://wfmu.org/", description = "Jersey City, 91.1 MHz",
+            country = "United States", codec = "MP3", bitrate = 128, source = "manual",
+        ),
     )
 }
 

@@ -12,7 +12,7 @@ To try it without Android Studio, install the debug APK from the [latest release
 
 ## Features
 
-- **My stations**: your saved list. It starts with one example station, Radio Helsinki, which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
+- **My stations**: your saved list. It starts with five independent stations (Radio Helsinki, Mad Radio in Bogotá, Oroko Radio in Accra, Hà Nội Community Radio and WFMU), which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
 - **Browse**
   - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text.
   - *Worldwide*: search the open [radio-browser.info](https://www.radio-browser.info) directory by name, country code and genre tag (an empty search shows the most-voted stations).
