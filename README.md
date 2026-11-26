@@ -25,7 +25,7 @@ export LONGWAVE_ROOM=Office                        # optional default room, e.g.
 
 ## Usage
 
-The examples use `helsinki`, the one station `stations.json` ships with (Radio Helsinki). Any internet radio station works; see [Adding stations](#adding-stations).
+`stations.json` ships with five independent stations to try: Radio Helsinki (`helsinki`), Mad Radio in Bogotá (`madradio`), Oroko Radio in Accra (`oroko`), Hà Nội Community Radio (`hanoi`) and WFMU in Jersey City (`wfmu`). The examples use `helsinki`. Any internet radio station works; see [Adding stations](#adding-stations).
 
 ```
 longwave rooms                      # rooms, volume, what's playing
@@ -48,7 +48,7 @@ longwave alarm set-station <id> helsinki   # repoint an existing alarm (e.g. an 
 
 ## Adding stations
 
-Edit `stations.json`; add your own stations or replace the example:
+Edit `stations.json`; add your own stations or replace the examples:
 
 ```json
 {

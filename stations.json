@@ -2,5 +2,21 @@
   "helsinki": {
     "name": "Radio Helsinki",
     "url": "https://stream.radiohelsinki.fi/"
+  },
+  "madradio": {
+    "name": "Mad Radio",
+    "url": "https://c25.radioboss.fm/stream/171"
+  },
+  "oroko": {
+    "name": "Oroko Radio",
+    "url": "https://oroko-radio.radiocult.fm/stream"
+  },
+  "hanoi": {
+    "name": "Hà Nội Community Radio",
+    "url": "https://ha-noi-community-radio.radiocult.fm/stream"
+  },
+  "wfmu": {
+    "name": "WFMU",
+    "url": "https://stream0.wfmu.org/freeform-128k"
   }
 }
