@@ -73,7 +73,7 @@ def didl(title):
 def zones():
     found = soco.discover(timeout=5) or soco.discover(timeout=5, allow_network_scan=True)
     if not found:
-        sys.exit("No Sonos speakers found. Is this Mac on the home network, and does the "
+        sys.exit("No Sonos speakers found. Is this computer on the home network, and does the "
                  "app running this (e.g. Terminal) have Local Network permission?")
     return sorted(found, key=lambda z: z.player_name)
 

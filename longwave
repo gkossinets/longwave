@@ -1,4 +1,17 @@
 #!/bin/bash
-# Wrapper: runs longwave.py with this folder's virtualenv (built on macOS system Python).
-DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+# Wrapper: runs longwave.py with this folder's virtualenv.
+# Follows symlinks by hand (so the wrapper can be linked onto PATH) instead of
+# `readlink -f`, which macOS lacks before 12.3. `cd -P` resolves "../" against
+# real folders, not symlinked ones; CDPATH is unset so `cd` can't jump elsewhere.
+unset CDPATH
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  LINK_DIR="$(cd -P -- "$(dirname -- "$SOURCE")" && pwd -P)"
+  SOURCE="$(readlink -- "$SOURCE")"
+  case "$SOURCE" in
+    /*) ;;
+    *) SOURCE="$LINK_DIR/$SOURCE" ;;
+  esac
+done
+DIR="$(cd -P -- "$(dirname -- "$SOURCE")" && pwd -P)"
 exec "$DIR/.venv/bin/python" "$DIR/longwave.py" "$@"
