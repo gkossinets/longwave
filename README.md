@@ -90,6 +90,8 @@ Unit tests for the CLI's helpers (day parsing, station matching, stream URIs, th
 
 Longwave is an unofficial, independent project, not affiliated with, endorsed by, or sponsored by Sonos, Inc. "Sonos" is a trademark of Sonos, Inc., used here only to say which speakers this works with. Longwave uses the speakers' local network interface (UPnP), which Sonos does not document for third parties.
 
+Longwave is also not affiliated with, endorsed by, or sponsored by TuneIn, Inc. "TuneIn" is a trademark of TuneIn, Inc., used here only to describe what Longwave is an alternative to. Longwave does not use TuneIn's service: it replaces internet radio streams that the Sonos app set up with TuneIn with direct streams from the stations.
+
 ## License
 
 [MIT](LICENSE)

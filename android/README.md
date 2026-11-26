@@ -1,6 +1,6 @@
 # Longwave (Android)
 
-*Unofficial; not affiliated with or endorsed by Sonos, Inc. See the [disclaimer](../README.md#disclaimer) in the main README.*
+*Unofficial; not affiliated with or endorsed by Sonos, Inc. or TuneIn, Inc. See the [disclaimer](../README.md#disclaimer) in the main README.*
 
 A personal Android app for playing internet radio on Sonos speakers and for setting Sonos alarms that wake you with a radio stream, without TuneIn.
 
