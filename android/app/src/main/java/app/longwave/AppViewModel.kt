@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.longwave.data.sameStream
+import app.longwave.data.stationFromStream
 import app.longwave.data.RandomPicker
 import app.longwave.data.RadioBrowser
 import app.longwave.data.Station
@@ -128,6 +130,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (targets.isEmpty()) throw IllegalStateException("Pick at least one room")
         lastRooms = roomUuids
         volume?.let { lastVolume = it }
+        played = (listOf(station) + played.filterNot { sameStream(it.url, station.url) }).take(50)
         SonosControl.play(targets, speakers, station.url, station.name, volume)
         message = "Playing ${station.name} in ${targets.joinToString(" + ") { it.name }}"
         runCatching { NowPlaying.setActive(targets.first().uuid) }
@@ -164,7 +167,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- my stations
 
-    fun isSaved(st: Station) = myStations.any { it.url == st.url }
+    fun isSaved(st: Station) = myStations.any { sameStream(it.url, st.url) }
+
+    // Stations played from this app this session, so the playing one can be saved later
+    // with its full record even if it came from a Worldwide search or Add URL.
+    private var played = emptyList<Station>()
+
+    /** The playing stream as a station to save (see [stationFromStream]); null if not a stream. */
+    fun stationForStream(streamUrl: String, title: String): Station? =
+        stationFromStream(streamUrl, title, played + curated + searchResults)
 
     // Kept here so the no-repeats order survives switching tabs.
     private val randomPicker = RandomPicker()

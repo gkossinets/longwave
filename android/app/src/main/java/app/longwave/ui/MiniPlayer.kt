@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material.icons.filled.SpeakerGroup
@@ -29,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -145,6 +147,21 @@ private fun ActiveRoomSheet(vm: AppViewModel, onDismiss: () -> Unit) {
             Text("Control", style = MaterialTheme.typography.titleLarge)
             Text("The bar and the phone's media notification control this room or group.",
                 style = MaterialTheme.typography.bodySmall)
+            // Lets a station played earlier (e.g. a random pick) be saved after the fact.
+            val current = remember(s.streamUrl, s.title, vm.curated, vm.searchResults) {
+                vm.stationForStream(s.streamUrl, s.title)
+            }
+            if (current != null) {
+                Spacer(Modifier.height(12.dp))
+                Text(if (s.isPlaying) "Now playing" else "Last played", style = MaterialTheme.typography.titleSmall)
+                Text(current.name, style = MaterialTheme.typography.bodyLarge)
+                if (current.description.isNotBlank())
+                    Text(current.description, style = MaterialTheme.typography.bodySmall)
+                if (vm.isSaved(current)) Text("In My stations", style = MaterialTheme.typography.bodySmall)
+                else OutlinedButton(onClick = { vm.addStation(current) }) {
+                    Icon(Icons.Filled.Add, null); Spacer(Modifier.width(6.dp)); Text("Add to My stations")
+                }
+            }
             Spacer(Modifier.height(12.dp))
             val groups = vm.speakers.filter { it.isCoordinator }.map { c ->
                 c to vm.speakers.filter { it.coordinatorUuid == c.uuid }

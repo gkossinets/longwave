@@ -35,6 +35,8 @@ object NowPlaying {
         val track: String = "",
         /** PNG for the media notification and control bar; same instance while unchanged. */
         val artwork: ByteArray? = null,
+        /** The stream URL when the group plays an internet radio stream, else "". */
+        val streamUrl: String = "",
     ) {
         val isPlaying: Boolean get() = transport == "PLAYING" || transport == "TRANSITIONING"
         val roomsLabel: String get() = members.joinToString(" + ") { it.name }
@@ -103,7 +105,7 @@ object NowPlaying {
         val volume = runCatching {
             Soap.call(leader.ip, Soap.Svc.GRC, "GetGroupVolume", i0)["CurrentVolume"]?.toIntOrNull()
         }.getOrNull() ?: 0
-        _state.value = State(leader, members, transport, title, volume, track, artwork)
+        _state.value = State(leader, members, transport, title, volume, track, artwork, streamUrl.orEmpty())
     }
 
     private fun transportOf(s: Speaker): String =

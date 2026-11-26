@@ -175,12 +175,32 @@ object RadioBrowser {
 }
 
 /** Finds the station (My stations first, then the curated list) for a stream URL Sonos is playing. */
+/**
+ * A stream URL compared without scheme, trailing slash or case: the CLI drops the scheme
+ * before handing a URL to Sonos, and directories differ on the trailing slash.
+ */
+internal fun streamKey(url: String) = url.trim().substringAfter("://").trimEnd('/').lowercase()
+
+fun sameStream(a: String, b: String) = streamKey(a) == streamKey(b)
+
+/**
+ * The station to save for a stream Sonos is playing: the full record from [known] if there
+ * is one (it has the description, homepage and logo), else a new one named by the [title]
+ * Sonos reports. Sonos may hold the URL without its scheme; Sonos itself then uses http.
+ */
+fun stationFromStream(streamUrl: String, title: String, known: List<Station>): Station? {
+    if (streamUrl.isBlank()) return null
+    known.firstOrNull { sameStream(it.url, streamUrl) }?.let { return it }
+    val url = streamUrl.trim().let { if ("://" in it) it else "http://$it" }
+    val host = runCatching { java.net.URI(url).host }.getOrNull() ?: url
+    val name = title.trim().takeUnless { it.isBlank() || sameStream(it, streamUrl) } ?: host
+    return Station(name = name, url = url, source = "manual")
+}
+
 object StationLookup {
     private var mine: List<Station> = emptyList()
     private var mineStamp = -1L
     private var curated: List<Station>? = null
-
-    private fun norm(u: String) = u.trim().substringAfter("://").trimEnd('/').lowercase()
 
     @Synchronized
     fun find(ctx: Context, url: String): Station? {
@@ -189,8 +209,8 @@ object StationLookup {
         val stamp = if (f.exists()) f.lastModified() else 0L
         if (stamp != mineStamp) { mine = repo.loadMine(); mineStamp = stamp }
         if (curated == null) curated = runCatching { repo.loadCurated() }.getOrDefault(emptyList())
-        val n = norm(url)
-        return mine.firstOrNull { norm(it.url) == n } ?: curated.orEmpty().firstOrNull { norm(it.url) == n }
+        val n = streamKey(url)
+        return mine.firstOrNull { streamKey(it.url) == n } ?: curated.orEmpty().firstOrNull { streamKey(it.url) == n }
     }
 }
 
