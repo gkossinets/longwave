@@ -16,7 +16,7 @@ The release APK is a debug build. A future release may be signed differently, an
 
 - **My stations**: your saved list. It starts with five independent stations (Radio Helsinki, Mad Radio in Bogotá, Oroko Radio in Accra, Hà Nội Community Radio and WFMU), which you can remove; add any station from Browse or by URL. Edit, reorder, remove, or open a station's website.
 - **Browse**
-  - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text.
+  - *Curated*: about 455 stations from [deroverda/recommended-radio-streams](https://github.com/deroverda/recommended-radio-streams) (CC0), bundled with the app; filter by genre or text. The shuffle button next to the Browse title picks a random station from the stations shown, skipping ones already in My stations and not repeating until it has gone through them all; its play sheet has *Try another*.
   - *Worldwide*: search the open [radio-browser.info](https://www.radio-browser.info) directory by name, country code and genre tag (an empty search shows the most-voted stations).
   - *Add URL*: paste a stream link (for example from fmstream.org) and check that it's really an audio stream before adding it. You can also share a link from the browser to the app (Share → Longwave).
 - **Play on…**: pick one or more rooms; the first one leads the group and the others join it. Rooms grouped with the leader but not selected are split off. Optionally set the volume.

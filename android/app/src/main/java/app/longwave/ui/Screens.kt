@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
@@ -243,7 +244,8 @@ private fun EditStationDialog(st: Station, onDismiss: () -> Unit, onSave: (Stati
 // ---------------------------------------------------------------- Play sheet
 
 @Composable
-fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit) {
+/** [onAnother], when given, adds a "Try another" button (used for random picks). */
+fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit, onAnother: (() -> Unit)? = null) {
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val initial = remember(vm.speakers) {
         val last = vm.lastRooms.filter { id -> vm.speakers.any { it.uuid == id } }.toSet()
@@ -256,6 +258,7 @@ fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet) {
         Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp).verticalScroll(rememberScrollState())) {
             Text(st.name, style = MaterialTheme.typography.titleLarge)
+            if (st.description.isNotBlank()) Text(st.description, style = MaterialTheme.typography.bodyMedium)
             if (st.details.isNotBlank()) Text(st.details, style = MaterialTheme.typography.bodySmall)
             if (st.isHls) Text(
                 "HLS stream: these usually play on Sonos, but some don't.",
@@ -293,7 +296,7 @@ fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit) {
             }
             if (setVolume) Slider(value = volume, onValueChange = { volume = it }, valueRange = 0f..60f)
             Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(enabled = selected.isNotEmpty(), onClick = {
                     vm.play(st, selected, if (setVolume) volume.toInt() else null)
                     onDismiss()
@@ -301,6 +304,9 @@ fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit) {
                     Icon(Icons.Filled.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Play")
                 }
                 if (!vm.isSaved(st)) OutlinedButton(onClick = { vm.addStation(st) }) { Text("Add to My stations") }
+                if (onAnother != null) TextButton(onClick = onAnother) {
+                    Icon(Icons.Filled.Shuffle, null); Spacer(Modifier.width(6.dp)); Text("Try another")
+                }
             }
         }
     }
@@ -312,18 +318,37 @@ fun PlaySheet(vm: AppViewModel, st: Station, onDismiss: () -> Unit) {
 fun BrowseScreen(vm: AppViewModel, sharedUrl: MutableState<String?>, onPlay: (Station) -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     LaunchedEffect(sharedUrl.value) { if (sharedUrl.value != null) tab = 2 }
+    // The Curated filters live here so the random button picks from what the list shows.
+    var filter by rememberSaveable { mutableStateOf("") }
+    var genre by rememberSaveable { mutableStateOf("") }
+    val shown = remember(vm.curated, filter, genre) {
+        val q = filter.trim().lowercase()
+        vm.curated.filter {
+            (genre.isBlank() || it.genre == genre) &&
+                (q.isBlank() || (it.name + " " + it.description).lowercase().contains(q))
+        }
+    }
+    var randomPick by remember { mutableStateOf<Station?>(null) }
     Column(Modifier.fillMaxSize()) {
-        Header("Browse", vm.busy || vm.searching)
+        Header("Browse", vm.busy || vm.searching) {
+            if (tab == 0) IconButton(enabled = shown.isNotEmpty(), onClick = { randomPick = vm.randomStation(shown) }) {
+                Icon(Icons.Filled.Shuffle, contentDescription = "Random station")
+            }
+        }
         TabRow(selectedTabIndex = tab) {
             listOf("Curated", "Worldwide", "Add URL").forEachIndexed { i, t ->
                 Tab(selected = tab == i, onClick = { tab = i }, text = { Text(t) })
             }
         }
         when (tab) {
-            0 -> CuratedTab(vm, onPlay)
+            0 -> CuratedTab(vm, onPlay, filter, { filter = it }, genre, { genre = it }, shown)
             1 -> WorldwideTab(vm, onPlay)
             else -> AddUrlTab(vm, sharedUrl)
         }
+    }
+    randomPick?.let { pick ->
+        PlaySheet(vm, pick, onDismiss = { randomPick = null },
+            onAnother = { randomPick = vm.randomStation(shown) ?: pick })
     }
 }
 
@@ -334,27 +359,26 @@ private fun AddOrSavedButton(vm: AppViewModel, st: Station) {
 }
 
 @Composable
-private fun CuratedTab(vm: AppViewModel, onPlay: (Station) -> Unit) {
-    var filter by rememberSaveable { mutableStateOf("") }
-    var genre by rememberSaveable { mutableStateOf("") }
+private fun CuratedTab(
+    vm: AppViewModel,
+    onPlay: (Station) -> Unit,
+    filter: String,
+    onFilter: (String) -> Unit,
+    genre: String,
+    onGenre: (String) -> Unit,
+    shown: List<Station>,
+) {
     val genres = remember(vm.curated) { vm.curated.map { it.genre }.distinct() }
-    val shown = remember(vm.curated, filter, genre) {
-        val q = filter.trim().lowercase()
-        vm.curated.filter {
-            (genre.isBlank() || it.genre == genre) &&
-                (q.isBlank() || (it.name + " " + it.description).lowercase().contains(q))
-        }
-    }
     LazyColumn(Modifier.fillMaxSize()) {
         item {
             OutlinedTextField(
-                filter, { filter = it }, label = { Text("Filter") }, singleLine = true,
+                filter, onFilter, label = { Text("Filter") }, singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             )
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                item { FilterChip(selected = genre.isBlank(), onClick = { genre = "" }, label = { Text("All") }) }
+                item { FilterChip(selected = genre.isBlank(), onClick = { onGenre("") }, label = { Text("All") }) }
                 items(genres) { g ->
-                    FilterChip(selected = genre == g, onClick = { genre = if (genre == g) "" else g }, label = { Text(g) })
+                    FilterChip(selected = genre == g, onClick = { onGenre(if (genre == g) "" else g) }, label = { Text(g) })
                 }
             }
             Text(

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.longwave.data.RandomPicker
 import app.longwave.data.RadioBrowser
 import app.longwave.data.Station
 import app.longwave.data.StationRepository
@@ -164,6 +165,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------- my stations
 
     fun isSaved(st: Station) = myStations.any { it.url == st.url }
+
+    // Kept here so the no-repeats order survives switching tabs.
+    private val randomPicker = RandomPicker()
+
+    /** A random station from [pool] (the curated stations currently shown), or null if empty. */
+    fun randomStation(pool: List<Station>): Station? = randomPicker.next(pool, ::isSaved)
 
     fun addStation(st: Station) {
         if (isSaved(st)) { message = "${st.name} is already in My stations"; return }
